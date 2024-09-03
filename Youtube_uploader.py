@@ -10,7 +10,7 @@ from googleapiclient.http import MediaFileUpload
 from googleapiclient import errors  # この行を追加
 
 class Youtube_uploader:
-    def __init__(self):
+    def __init__(self, key_path):
         self.scopes = ["https://www.googleapis.com/auth/youtube.upload"]
         self.credentials = None
         
@@ -25,7 +25,7 @@ class Youtube_uploader:
                 self.credentials.refresh(Request())
             else:
                 flow = InstalledAppFlow.from_client_secrets_file(
-                    'client_secret_170252295818-u0p1ncb82ou8otmkv0q7hvlpc72hq22b.apps.googleusercontent.com.json', self.scopes)  # ファイル名を実際のものに置き換えてください
+                    key_path, self.scopes)  # ファイル名を実際のものに置き換えてください
                 self.credentials = flow.run_local_server(port=0)
             
             # 認証情報を保存
@@ -73,5 +73,5 @@ class Youtube_uploader:
             response = None
             
 if __name__ == "__main__":
-    uploader = Youtube_uploader()
+    uploader = Youtube_uploader("keys/client_secret_170252295818-u0p1ncb82ou8otmkv0q7hvlpc72hq22b.apps.googleusercontent.com.json")
     uploader.upload_video("movie.mp4", "YOUR_VIDEO_TITLE", "YOUR_VIDEO_DESCRIPTION", ["YOUR_VIDEO_TAG1", "YOUR_VIDEO_TAG2"])
