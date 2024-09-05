@@ -80,7 +80,7 @@ def main():
 
         # 動画をアップロード
         uploader.upload_video(video_path=save_path,
-                            title=f"【語りのずんだ】ずんだもんがささやき声で物語を読み聞かせるのだ【{story_title}】",
+                            title=f"【睡眠導入】ずんだもんがささやき声で物語を読み聞かせるのだ【{story_title}】",
                             description=f"こんばんは。ずんだもんなのだ。このチャンネルでは僕が毎日いろんな物語をささやき声で読み聞かせる動画を投稿しているのだ。気に入ったらぜひ高評価とチャンネル登録をしていただけるとうれしいのだ。のだ。",
                             tags=["語りのずんだ", "ずんだもん", "物語", "読み聞かせ", "ささやき声", "ささやき声で物語を読み聞かせるのだ", "ささやき声で物語を読み聞かせるのだ【{story_title}】"])
         print("動画をアップロードしました。")
@@ -117,7 +117,7 @@ def create_story() -> str:
 
 
     """
-    with open("ChatGPT_params.json", "r") as f:
+    with open("keys/ChatGPT_params.json", "r") as f:
         params = json.load(f)
     gpt = ChatGPT(params["api_key"], params["model"])
     story = gpt.send_message(prompt)
@@ -153,7 +153,7 @@ def create_movie(save_path: str):
     """
     generate_voice(text, speaker=22, speed=0.75, output_path="resources/voice/0.wav")
     text_end = """
-    これでこのものがたりはおわりなのだ。ぜひほかのものがたりもきいていってもらえるとうれしいのだ。それでは、べつのものがたりでまたあおうなのだ。
+    これでこのものがたりはおわりなのだ。ぜひほかのものがたりもきいていってもらえるとうれしいのだ。それでは、べつのものがたりでまたあおうなのだ。ばいばい。
     """
     generate_voice(text_end, speaker=22, speed=0.75, output_path="resources/voice/1000.wav")
     # ボイスファイルのリストを生成
@@ -173,7 +173,7 @@ def create_movie(save_path: str):
     for i in tqdm(range(len(voice_path))):
         audio = AudioSegment.from_wav(voice_path[i]) # 音声ファイルを読み込む
         duration_sec = audio.duration_seconds # 音声の長さを取得
-        if 0 < i < len(voice_path)-2: # 動画説明とエンディングの分引く
+        if 0 < i < len(voice_path)-1: # 動画説明とエンディングの分引く
             with open(text_path+str(i-1)+".txt", "r", encoding="utf-8") as f:
                 text = f.read()
         if i == 0: # 動画説明

@@ -1,3 +1,9 @@
-resources
 keys
 __pycache__
+*.wav
+*.mp4
+*.png
+*.jpg
+*.jpeg
+*.txt
+*.json
