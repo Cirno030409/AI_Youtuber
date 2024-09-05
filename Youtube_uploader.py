@@ -1,13 +1,17 @@
 """
-Youtubeに動画をアップロードします
+Youtubeに動画をアップロードする機能を提供します。
+
+@author: Yuta Tanimura
 """
 import os
 import pickle
-from google_auth_oauthlib.flow import InstalledAppFlow
+
 from google.auth.transport.requests import Request
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient import errors  # この行を追加
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
-from googleapiclient import errors  # この行を追加
+
 
 class Youtube_uploader:
     def __init__(self, key_path):

@@ -1,5 +1,11 @@
-import requests
+"""
+VoiceVoxエンジンを使用して音声生成を行う機能を提供します。
+
+@author: Yuta Tanimura
+"""
 import json
+
+import requests
 import soundfile as sf
 
 # VOICEVOXエンジンのURL（デフォルトのポート番号は50021）

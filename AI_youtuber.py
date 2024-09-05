@@ -1,16 +1,23 @@
+"""
+Youtubeに自動で動画投稿を行います。
+
+@author: Yuta Tanimura
+"""
+import json
+import os
+import pickle
+import time
+from datetime import datetime
+
+import win10toast
+from moviepy.editor import VideoFileClip
+from pydub import AudioSegment
+from tqdm import tqdm
+
 from ChatGPT import ChatGPT
 from Movie_maker import Movie_maker
 from VoiceVox import generate_voice
 from Youtube_uploader import Youtube_uploader
-import json
-from tqdm import tqdm
-import os
-from pydub import AudioSegment
-from datetime import datetime
-import win10toast
-import pickle
-import time
-from moviepy.editor import VideoFileClip
 
 story_title = ""
 

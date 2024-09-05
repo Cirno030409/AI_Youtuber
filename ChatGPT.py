@@ -1,11 +1,14 @@
 """
 チャットGPTの機能を提供します。
-@Author: Yuta Tanimura
+
+@author: Yuta Tanimura
 """
 
-from openai import OpenAI
-import json
 import base64
+import json
+
+from openai import OpenAI
+
 
 class ChatGPT:
     def __init__(self, api_key:str, model:str, init_prompt:str="", n_memorise:int=1):

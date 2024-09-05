@@ -1,17 +1,19 @@
 """
-動画を作成します。
+動画を作成する機能を提供します。
+
 @author: Yuta Tanimura
 """
-from moviepy.editor import VideoFileClip, concatenate_videoclips, TextClip, ImageClip, ColorClip
+import numpy as np
+from moviepy.audio.AudioClip import CompositeAudioClip
+from moviepy.audio.io.AudioFileClip import AudioFileClip
+from moviepy.editor import (ColorClip, ImageClip, TextClip, VideoFileClip,
+                            concatenate_videoclips)
 from moviepy.video.compositing.CompositeVideoClip import CompositeVideoClip
 from moviepy.video.io.bindings import mplfig_to_npimage
-from moviepy.audio.io.AudioFileClip import AudioFileClip
 from moviepy.video.VideoClip import ColorClip
-from moviepy.audio.io.AudioFileClip import AudioFileClip
-from moviepy.audio.AudioClip import CompositeAudioClip
 from PIL import Image, ImageDraw
-import numpy as np
 from pydub import AudioSegment
+
 
 class Movie_maker:
     def __init__(self, duration:float, bg_color=(0,0,0), size=(1920, 1080), fps=60):
