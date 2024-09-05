@@ -15,6 +15,15 @@ from googleapiclient.http import MediaFileUpload
 
 class Youtube_uploader:
     def __init__(self, key_path):
+        """
+        Youtubeに動画をアップロードするためのインスタンスを作成します。
+
+        Args:
+            key_path (str): 認証情報のパス
+        Methods:
+            upload_video(video_path, title, description, tags):
+                Youtubeに動画をアップロードします。
+        """
         self.scopes = ["https://www.googleapis.com/auth/youtube.upload"]
         self.credentials = None
         

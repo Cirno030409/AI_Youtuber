@@ -12,6 +12,18 @@ from openai import OpenAI
 
 class ChatGPT:
     def __init__(self, api_key:str, model:str, init_prompt:str="", n_memorise:int=1):
+        """
+        ChatGPTを使用するためのインスタンスを作成します。
+
+        Args:
+            api_key (str): OpenAIのAPIキー
+            model (str): 使用するモデル
+            init_prompt (str, optional): 初期プロンプト. Defaults to "".
+            n_memorise (int, optional): 記憶するメッセージの数. Defaults to 1.
+        Methods:
+            send_message(message:str, image_path:str=None) -> str:
+                ChatGPTにメッセージを送信します。返答文を返します。
+        """
         self.client = OpenAI(api_key=api_key)
         self.model = model
         self.conversation_history = [{"role": "system", "content": init_prompt}]
