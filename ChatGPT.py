@@ -91,10 +91,10 @@ class ChatGPT:
         return response_text
     
 if __name__ == "__main__":
-    with open("ChatGPT_params.json", "r") as f:
+    with open("keys/ChatGPT_params.json", "r") as f:
         params = json.load(f)
     gpt = ChatGPT(params["api_key"], params["model"])
-    print(gpt.send_message("この画像を説明してください", "APEX.jpg"))
+    print(gpt.send_message("hello"))
 
 
 

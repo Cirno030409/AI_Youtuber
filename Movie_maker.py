@@ -44,7 +44,7 @@ class Movie_maker:
                 音声をクリップの指定した時点に追加します。\n
             add_video(video_path, position="center", start_time=0, end_time=None, resize_ratio_x=1, resize_ratio_y=1): 
                 動画を追加します。\n
-            add_rectangle(position=(0, 0), size=(100, 100), color=(255, 255, 255), start_time=0, end_time=None): 
+            add_rectangle(position=(0, 0), size=(100, 100), color=(255, 255, 255), alpha=255, start_time=0, end_time=None): 
                 矩形を追加します。\n
             add_circle(position=(0, 0), radius=50, color=(255, 255, 255), start_time=0, end_time=None): 
                 円を追加します。\n
@@ -64,7 +64,7 @@ class Movie_maker:
         self.clip.write_videofile(output_path, audio=True, **kwargs)
         print(f"クリップをエクスポートしました。 > {output_path}")
         
-    def add_text(self, text, fontsize=50, color="white", position="center", start_time=0, end_time=None, stroke_color=None, stroke_width=None, font="fonts/MSGOTHIC.TTC"):
+    def add_text(self, text, fontsize=50, color="white", position="center", start_time=0, end_time=None, stroke_color=None, stroke_width=None, font="fonts/MSGOTHIC.TTC", weight="normal"):
         """
         テキストを追加します。
         
@@ -78,6 +78,7 @@ class Movie_maker:
             stroke_color (str, optional): テキストの輪郭の色. デフォルトはNone.
             stroke_width (int, optional): テキストの輪郭の幅. デフォルトはNone.
             font (str, optional): フォントのパス. デフォルトは"fonts/MSGOTHIC.TTC".
+            weight (str, optional): フォントの太さ. デフォルトは"normal". normal, bold, light, thin, black
         """
         if text == "":
             print("Movie_maker.add_text: テキストが空なので、テキストは追加されません。")
@@ -90,7 +91,7 @@ class Movie_maker:
         if stroke_color is not None and stroke_width is not None:
             text_clip = TextClip(text, fontsize=fontsize, color=color, font=font, stroke_color=stroke_color, stroke_width=stroke_width)
         else:
-            text_clip = TextClip(text, fontsize=fontsize, color=color, font=font)
+            text_clip = TextClip(text, fontsize=fontsize, color=color, font=font, weight=weight)
         text_clip = text_clip.set_position(position).set_start(start_time).set_end(end_time)
         self.clip = CompositeVideoClip([self.clip, text_clip])
         
@@ -169,7 +170,7 @@ class Movie_maker:
             video_clip = video_clip.set_end(self.clip.duration)
         self.clip = CompositeVideoClip([self.clip, video_clip])
     
-    def add_rectangle(self, position=(0, 0), size=(100, 100), color=(255, 255, 255), start_time=0, end_time=None):
+    def add_rectangle(self, position=(0, 0), size=(100, 100), color=(255, 255, 255), alpha=255, start_time=0, end_time=None):
         """
         矩形を追加します。
         
@@ -177,10 +178,22 @@ class Movie_maker:
             position (tuple, optional): 矩形の位置. Defaults to (0, 0).\n
             size (tuple, optional): 矩形のサイズ. Defaults to (100, 100).\n
             color (tuple, optional): 矩形の色. Defaults to (255, 255, 255).\n
+            alpha (int, optional): 不透明度（0-255）. Defaults to 255.\n
             start_time (float, optional): 矩形の開始時間. Defaults to 0.\n
             end_time (float, optional): 矩形の終了時間. Defaults to None（クリップの終わりまで）.
         """
-        rectangle_clip = ColorClip(size=size, color=color)
+        # 透明な背景の画像を作成
+        img = Image.new('RGBA', size, (0, 0, 0, 0))
+        draw = ImageDraw.Draw(img)
+        
+        # 矩形を描画（colorにアルファ値を追加）
+        draw.rectangle([0, 0, size[0], size[1]], fill=color + (alpha,))
+        
+        # PIL ImageをNumPy配列に変換
+        img_array = np.array(img)
+        
+        # ImageClipを作成
+        rectangle_clip = ImageClip(img_array)
         rectangle_clip = rectangle_clip.set_position(position)
         rectangle_clip = rectangle_clip.set_start(start_time)
         if end_time is not None:

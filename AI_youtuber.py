@@ -29,10 +29,13 @@ def main():
             with open("resources/param/date.pickle", "rb") as f:
                 date = pickle.load(f)
             if date >= datetime.now().strftime('%Y%m%d'):
-                print("日付が変わるまで待機しています...")
-            while date >= datetime.now().strftime('%Y%m%d'): # 日付が変わるまで待機
-                time.sleep(10)
-        toast.show_toast("動画投稿プロセス進行中", "語りのずんだチャンネルの動画投稿プロセスが始まります。", duration=10, threaded=True)
+                print("日付が変わり朝７時になると投稿プロセスが開始されます。")
+            while True:  # 日付が変わった朝の7時以降まで待機
+                now = datetime.now()
+                if now.strftime('%Y%m%d') > date and now.hour >= 7:
+                    break
+                time.sleep(60)  # 1分ごとにチェック
+        toast.show_toast("動画投稿プロセス進行中", "語りのずんだチャンネルの動画投稿プロセスが始まります。", duration=10)
         print("物語を生成しています...")
         retry_count = 0
         while True: # 物語生成が成功するまでリトライする
@@ -50,8 +53,8 @@ def main():
             except AssertionError as e:
                 retry_count += 1
                 print("ChatGPTが不正な物語を生成しました。リトライします。リトライ回数：", retry_count)
-                if retry_count > 4:
-                    toast.show_toast("物語生成エラー", "ChatGPTが不正な物語を生成しました。リトライ回数が4回を超えたため、プログラムを終了します。", duration=10)
+                if retry_count > 5:
+                    toast.show_toast("物語生成エラー", "ChatGPTが不正な物語を生成しました。リトライ回数が5回を超えたため、プログラムを終了します。", duration=10)
                     exit()
                 else:
                     continue
@@ -80,12 +83,14 @@ def main():
         print("動画を生成しています...")
         
         # 動画を生成
+        toast.show_toast("動画プロセス進行中", "動画の書き出しが開始されます。", duration=10)
         create_movie(save_path=save_path)
         print("動画を生成しました。")
-        print("動画をアップロードしています...")
-        uploader = Youtube_uploader("keys/client_secret_170252295818-u0p1ncb82ou8otmkv0q7hvlpc72hq22b.apps.googleusercontent.com.json")
+        break
+        # print("動画をアップロードしています...")
 
-        # 動画をアップロード
+        動画をアップロード
+        uploader = Youtube_uploader("keys/client_secret_170252295818-u0p1ncb82ou8otmkv0q7hvlpc72hq22b.apps.googleusercontent.com.json")
         uploader.upload_video(video_path=save_path,
                             title=f"【睡眠導入】ずんだもんがささやき声で物語を読み聞かせるのだ【{story_title}】",
                             description=f"こんばんは。ずんだもんなのだ。このチャンネルでは僕が毎日いろんな物語をささやき声で読み聞かせる動画を投稿しているのだ。気に入ったらぜひ高評価とチャンネル登録をしていただけるとうれしいのだ。のだ。",
@@ -126,7 +131,7 @@ def create_story() -> str:
     """
     with open("keys/ChatGPT_params.json", "r") as f:
         params = json.load(f)
-    gpt = ChatGPT(params["api_key"], params["model"])
+    gpt = ChatGPT(params["api_key"], params["model"], n_memorise=2)
     story = gpt.send_message(prompt)
     stories = story.split(';')
     
@@ -172,42 +177,56 @@ def create_movie(save_path: str):
 
     img_zunda_path = "resources/image/立ち絵.png"
     img_gb_path = "resources/image/background.png"
+    img_title_bg_path = "resources/image/title_bg.jpg"
     text_path = "resources/text/"
     font_path = "fonts/HGRGY.TTC"
     
     clips = [] # クリップのリスト    
     print("クリップを構成しています...")
-    for i in tqdm(range(len(voice_path))):
-        audio = AudioSegment.from_wav(voice_path[i]) # 音声ファイルを読み込む
-        duration_sec = audio.duration_seconds # 音声の長さを取得
-        if 0 < i < len(voice_path)-1: # 動画説明とエンディングの分引く
-            with open(text_path+str(i-1)+".txt", "r", encoding="utf-8") as f:
+    
+    
+    n_voices = len(voice_path)
+    for i in tqdm(range(n_voices)):
+        if i!=0:
+            audio = AudioSegment.from_wav(voice_path[i-1]) # 音声ファイルを読み込む
+            duration_sec = audio.duration_seconds # 音声の長さを取得
+        if i==0 or 2 < i < n_voices-1: # 物語本体（タイトルから）
+            with open(text_path+str(i)+".txt", "r", encoding="utf-8") as f:
                 text = f.read()
-        if i == 0: # 動画説明
+        if i == 0: # タイトル
+            global story_title
+            story_title = text
+            clips.append(Movie_maker(duration=2.5)) # タイトルのClipを作成
+            clips[i].add_image(img_title_bg_path, position=(0, 0), resize_ratio_x=1, resize_ratio_y=1)
+            clips[i].add_rectangle(position=(0, 0), size=(1920, 1080), color=(0, 0, 0), alpha=150)
+            clips[i].add_image(img_zunda_path, position=(850, 200), resize_ratio_x=2.3, resize_ratio_y=2.3)
+            clips[i].add_text("ずんだもんが囁き声で\n読み聞かせる物語", position=(380, 100), fontsize=130, color="white", stroke_color="black", stroke_width=2, font=font_path, weight="bold")
+            clips[i].add_text(f"『{story_title}』", position="center", fontsize=170, color="white", stroke_color="black", stroke_width=4, font=font_path, weight="bold")
+        elif i == 1: # 動画説明
             clips.append(Movie_maker(duration=(duration_sec + 2.5))) # 前口上とタイトルのClipを作成
             clips[i].add_image(img_gb_path, position=(0, 0), resize_ratio_x=1, resize_ratio_y=1)
             clips[i].add_image(img_zunda_path, position=(1250, 400), resize_ratio_x=1.2, resize_ratio_y=1.2)
             clips[i].add_text("「語りのずんだ」へようこそなのだ。", start_time=0, end_time=3.5, position="center", fontsize=50, color="white", stroke_color="black", stroke_width=1, font=font_path)
             clips[i].add_text("この動画では、僕があなたにいろんな物語を読み聞かせるのだ。", start_time=3.5, end_time=11, position="center", fontsize=50, color="white", stroke_color="black", stroke_width=1, font=font_path)
             clips[i].add_text("今回の物語はこれなのだ。", start_time=11, position="center", fontsize=50, color="white", stroke_color="black", stroke_width=1, font=font_path)
-        elif i == 1: # 物語タイトル
-            global story_title
-            story_title = text
+        elif i == 2: # 物語タイトル
             clips.append(Movie_maker(duration=(duration_sec + 1.5))) # 前口上とタイトルのClipを作成
             clips[i].add_image(img_gb_path, position=(0, 0), resize_ratio_x=1, resize_ratio_y=1)
             clips[i].add_image(img_zunda_path, position=(1250, 400), resize_ratio_x=1.2, resize_ratio_y=1.2)
             clips[i].add_text(text, position="center", fontsize=100, color="white", stroke_color="black", stroke_width=2, font=font_path)
-        elif i == len(voice_path)-1: # エンディング
+
+        elif i == n_voices-1: # エンディング
             clips.append(Movie_maker(duration=(duration_sec + 1.5))) # 前口上とタイトルのClipを作成
             clips[i].add_image(img_gb_path, position=(0, 0), resize_ratio_x=1, resize_ratio_y=1)
             clips[i].add_image(img_zunda_path, position=(1250, 400), resize_ratio_x=1.2, resize_ratio_y=1.2)
-        else: # 物語
-            text = split_text_by_length(text, 38)
+        else: # 物語本分
+            text = split_text_by_length(text, 36)
             clips.append(Movie_maker(duration=(duration_sec + 1))) # 物語のClipを作成
             clips[i].add_image(img_gb_path, position=(0, 0), resize_ratio_x=1, resize_ratio_y=1)
             clips[i].add_image(img_zunda_path, position=(1250, 400), resize_ratio_x=1.2, resize_ratio_y=1.2)
             clips[i].add_text(text, position="center", fontsize=50, color="white", stroke_color="black", stroke_width=1, font=font_path)
-        clips[i].add_audio(voice_path[i]) # 音声を追加
+        if i!=0:
+            clips[i].add_audio(voice_path[i-1]) # 音声を追加
     
     # クリップを連結
     for i in range(1, len(clips)):
@@ -216,7 +235,16 @@ def create_movie(save_path: str):
     # クリップをエクスポート（GPUを使用）
     clips[0].export_clip(save_path, remove_temp=True,
                         codec="h264_nvenc",
-                        ffmpeg_params=["-preset", "slow", "-crf", "23"])
+                        fps=10,
+                        ffmpeg_params=[
+                            "-preset", "fast",  # 'p1'から'fast'に変更
+                            "-crf", "23",
+                            "-b:v", "5M",     # ビットレートを指定
+                            "-maxrate", "10M", # 最大ビットレートを指定
+                            "-bufsize", "10M", # バッファサイズを指定
+                            "-tune", "fastdecode", # 高速デコードを有効化
+                            "-rc-lookahead", "20"  # ルックアヘッドバッファを小さく
+                        ])
 
 if __name__ == "__main__":
     main()
